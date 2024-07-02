@@ -6,7 +6,6 @@ async function bootstrap() {
   app.enableCors({
     origin: 'https://nice-link.netlify.app',
     methods: 'GET,PUT,POST,DELETE',
-    allowedHeaders: 'Content-Type, Authorization',
   });
   await app.listen(3000);
 }
