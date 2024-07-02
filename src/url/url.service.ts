@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { createClient } from '@libsql/client';
 import { ConfigService } from '@nestjs/config';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class UrlService {
@@ -14,6 +15,11 @@ export class UrlService {
   });
 
   async create(originalUrl: string): Promise<any> {
+    const existingUrl = await this.findByOriginalUrl(originalUrl);
+    if (existingUrl) {
+      return existingUrl;
+    }
+
     let shortUrl: string;
     let url: any;
     do {
@@ -42,7 +48,21 @@ export class UrlService {
     }
   }
 
+  async findByOriginalUrl(originalUrl: string): Promise<any> {
+    const result = await this.turso.execute({
+      sql: 'SELECT * FROM urls WHERE originalUrl = ?',
+      args: [originalUrl],
+    });
+
+    if (result.rows.length > 0) {
+      return result.rows[0];
+    } else {
+      return null;
+    }
+  }
+
   private generateShortUrl(): string {
-    return Math.random().toString(36).substring(2, 8);
+    const randomValue = randomBytes(6); // Genera 6 bytes aleatorios
+    return randomValue.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').substring(0, 8);
   }
 }
